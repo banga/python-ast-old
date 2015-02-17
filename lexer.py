@@ -42,51 +42,90 @@ reserved = {
 
 tokens = [
     'NAME',
-    'PLUS',
-    'MINUS',
-    'TIMES',
-    'DIVIDE',
-    'EQUALS',
-    'LPAR',
-    'RPAR',
-    'LBRACE',
-    'RBRACE',
-    'LSQB',
-    'RSQB',
     'STRINGLITERAL',
-    'BACKSLASH',
     'FLOATNUMBER',
     'BININTEGER',
     'HEXINTEGER',
     'OCTINTEGER',
     'DECIMALINTEGER',
+    'NEWLINE',
+    'AT',
+    'DOT',
+    'LPAREN',
+    'RPAREN',
+    'LSQ',
+    'RSQ',
+    'LCURL',
+    'RCURL',
+    'LANG',
+    'RANG',
+    'DEQ',
+    'GEQ',
+    'LEQ',
+    'NEQ',
+    'NEQ2',
+    'COMMA',
+    'SEMICOLON',
+    'PIPE',
+    'CARET',
+    'AMPERSAND',
+    'LSH',
+    'RSH',
+    'PLUS',
+    'MINUS',
+    'STAR',
+    'SLASH',
+    'DBLSTAR',
+    'DBLSLASH',
+    'MOD',
+    'TILDE',
+    'COLON',
+    'BACKTICK',
+    'EQ',
 ] + reserved.values()
+
 
 # Ignored characters
 t_ignore = " \t"
 
-
-def t_newline(t):
-    r'\n+'
-    t.lexer.lineno += t.value.count("\n")
+t_AT = r'@'
+t_DOT = r'\.'
+t_LPAREN = r'\('
+t_RPAREN = r'\)'
+t_LSQ = r'\['
+t_RSQ = r'\]'
+t_LCURL = r'{'
+t_RCURL = r'}'
+t_LANG = r'<'
+t_RANG = r'>'
+t_DEQ = r'=='
+t_GEQ = r'>='
+t_LEQ = r'<='
+t_NEQ = r'!='
+t_NEQ2 = r'<>'
+t_COMMA = r','
+t_SEMICOLON = r';'
+t_PIPE = r'\|'
+t_CARET = r'\^'
+t_AMPERSAND = r'&'
+t_LSH = r'<<'
+t_RSH = r'>>'
+t_PLUS = r'\+'
+t_MINUS = r'-'
+t_STAR = r'\*'
+t_SLASH = r'/'
+t_DBLSTAR = r'\*\*'
+t_DBLSLASH = r'//'
+t_MOD = r'%'
+t_TILDE = r'~'
+t_COLON = r':'
+t_BACKTICK = r'`'
+t_EQ = r'='
 
 
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
-
-
-t_PLUS = r'\+'
-t_MINUS = r'-'
-t_TIMES = r'\*'
-t_DIVIDE = r'/'
-t_EQUALS = r'='
-t_LPAR = r'\('
-t_RPAR = r'\)'
-t_LBRACE = r'{'
-t_RBRACE = r'}'
-t_LSQB = r'\['
-t_RSQB = r'\]'
 
 
 #######################################
