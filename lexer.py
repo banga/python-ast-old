@@ -5,8 +5,43 @@ Lexer for Python AST.
 """
 from ply.lex import TOKEN
 
-tokens = (
-    'IDENTIFIER',
+reserved = {
+    'and': 'AND',
+    'as': 'AS',
+    'assert': 'ASSERT',
+    'break': 'BREAK',
+    'class': 'CLASS',
+    'continue': 'CONTINUE',
+    'def': 'DEF',
+    'del': 'DEL',
+    'elif': 'ELIF',
+    'else': 'ELSE',
+    'except': 'EXCEPT',
+    'exec': 'EXEC',
+    'finally': 'FINALLY',
+    'for': 'FOR',
+    'from': 'FROM',
+    'global': 'GLOBAL',
+    'if': 'IF',
+    'import': 'IMPORT',
+    'in': 'IN',
+    'is': 'IS',
+    'lambda': 'LAMBDA',
+    'not': 'NOT',
+    'or': 'OR',
+    'pass': 'PASS',
+    'print': 'PRINT',
+    'raise': 'RAISE',
+    'return': 'RETURN',
+    'try': 'TRY',
+    'while': 'WHILE',
+    'with': 'WITH',
+    'yield': 'YIELD',
+}
+
+
+tokens = [
+    'NAME',
     'PLUS',
     'MINUS',
     'TIMES',
@@ -18,12 +53,14 @@ tokens = (
     'RBRACE',
     'LSQB',
     'RSQB',
+    'STRINGLITERAL',
+    'BACKSLASH',
     'FLOATNUMBER',
     'BININTEGER',
     'HEXINTEGER',
     'OCTINTEGER',
     'DECIMALINTEGER',
-)
+] + reserved.values()
 
 # Ignored characters
 t_ignore = " \t"
@@ -39,7 +76,6 @@ def t_error(t):
     t.lexer.skip(1)
 
 
-t_IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
 t_PLUS = r'\+'
 t_MINUS = r'-'
 t_TIMES = r'\*'
@@ -51,6 +87,7 @@ t_LBRACE = r'{'
 t_RBRACE = r'}'
 t_LSQB = r'\['
 t_RSQB = r'\]'
+
 
 #######################################
 ## Integer and long integer literals ##
@@ -82,6 +119,41 @@ pointfloat = (r'(' + r'(' + intpart + r')?' + fraction + r')' + r'|' +
               r'(' + intpart + r'\.)')
 exponentfloat = r'((' + intpart + r'|' + pointfloat + ')' + exponent + r')'
 floatnumber = exponentfloat + '|' + pointfloat
+
+
+#####################
+## String literals ##
+#####################
+longstring = (r'(' +
+              r'"""([^\\]|(\\[\x00-\x7f]))*"""' +
+              r'|' +
+              r"'''([^\\]|(\\[\x00-\x7f]))*'''" +
+              r')')
+shortstring = (r'(' +
+               r'"([^\\\n\"]|(\\[\x00-\x7f]))*"' +
+               r'|' +
+               r"'([^\\\n\']|(\\[\x00-\x7f]))*'" +
+               r')')
+stringprefix = r'([rR]|([uUbB][rR]?))'
+stringliteral = (r'(' + stringprefix + ')?' +
+                 r'(' + longstring + '|' + shortstring + ')')
+
+
+@TOKEN(stringliteral)
+def t_STRINGLITERAL(t):
+    return t
+
+
+####################################
+## Identifiers and reserved words ##
+####################################
+
+
+def t_NAME(t):
+    r'[a-zA-Z_][a-zA-Z0-9_]*'
+    if t.value in reserved:
+        t.type = reserved[t.value]
+    return t
 
 
 # NOTE: These functions are defined to force an order in which

@@ -9,7 +9,9 @@ ExpectedToken = namedtuple('ExpectedToken', ['type', 'value'])
 class LexerTest(unittest.TestCase):
     def assertEqualTokens(self, expected, text):
         tokens = list(lexer.tokenize(text))
-        self.assertEquals(len(expected), len(tokens))
+        self.assertEquals(
+            len(expected), len(tokens),
+            "Unequal count of tokens: %r, %r" % (expected, tokens))
 
         for expected_token, token in zip(expected, tokens):
             self.assertEquals(expected_token.type, token.type)
@@ -17,8 +19,9 @@ class LexerTest(unittest.TestCase):
 
 
 class TypeTest(LexerTest):
-    def assertOfType(self, text):
-        self.assertEqualTokens([ExpectedToken(self.expected_type, text)], text)
+    def assertOfType(self, text, expected_type=None):
+        expected_type = expected_type or self.expected_type
+        self.assertEqualTokens([ExpectedToken(expected_type, text)], text)
 
 
 class TestOctInteger(TypeTest):
@@ -80,3 +83,47 @@ class TestFloatNumber(TypeTest):
         self.assertOfType('0e0')
         self.assertOfType('1e+10')
         self.assertOfType('1e-10')
+
+
+class TestStringLiteral(TypeTest):
+    expected_type = 'STRINGLITERAL'
+
+    def test_shortstring(self):
+        self.assertOfType('""')
+        self.assertOfType("''")
+        self.assertOfType('"Hello World!"')
+        self.assertOfType(r"'\\n'")
+        self.assertOfType(r"'\''")
+        self.assertOfType(r'"\""')
+
+    def test_longstring(self):
+        self.assertOfType('""""""')
+        self.assertOfType("''''''")
+        self.assertOfType('"""Hello World!"""')
+        self.assertOfType(r'"""\n"""')
+        self.assertOfType(r"'''\n'''")
+
+    def test_prefixes(self):
+        prefixes = ["r", "u", "ur", "R", "U", "UR", "Ur", "uR", "b", "B", "br",
+                    "Br", "bR", "BR"]
+        for prefix in prefixes:
+            self.assertOfType(prefix + r"''")
+            self.assertOfType(prefix + r'""')
+
+
+class TestNames(TypeTest):
+    expected_type = 'NAME'
+
+    def test(self):
+        self.assertOfType('x')
+        self.assertOfType('X1')
+        self.assertOfType('X1_2')
+        # Yep, this is a valid name in Python
+        self.assertOfType('_123')
+        self.assertOfType('__init__')
+
+
+class TestReservedWords(TypeTest):
+    def test(self):
+        for word in lexer.reserved:
+            self.assertOfType(word, word.upper())
