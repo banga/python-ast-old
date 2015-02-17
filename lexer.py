@@ -184,6 +184,12 @@ def t_DECIMALINTEGER(t):
     return t
 
 
+def t_NEWLINE(t):
+    r'\n'
+    t.lexer.lineno += 1
+    return t
+
+
 # Build the lexer
 import ply.lex as lex
 lex.lex()

@@ -127,3 +127,10 @@ class TestReservedWords(TypeTest):
     def test(self):
         for word in lexer.reserved:
             self.assertOfType(word, word.upper())
+
+
+class TestNewline(TypeTest):
+    expected_type = 'NEWLINE'
+
+    def test(self):
+        self.assertOfType('\n')
