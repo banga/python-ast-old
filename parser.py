@@ -1,3 +1,4 @@
+import logging
 import sys
 
 import ply.yacc as yacc
@@ -6,15 +7,27 @@ from ast import ArgumentList, Attribute, Decorator, Name
 from lexer import tokens
 
 
-"""
-decorator: AT dotted_name [ LPAREN [arglist] RPAREN ] NEWLINE
-decorators: decorator+
-decorated: decorators (classdef | funcdef)
-"""
-
-
 #def p_error(p):
     #print "Syntax error"
+
+
+def p_single_input(p):
+    """single_input : NEWLINE
+                    | simple_stmt
+                    | compound_stmt NEWLINE"""
+    print "single_input", p[:]
+
+
+#def p_file_input(p):
+    #"""file_input : file_input_inner ENDMARKER"""
+    #print "file_input", p[:]
+
+
+#def p_file_input_inner(p):
+    #"""file_input_inner : empty
+                        #| file_input_inner NEWLINE
+                        #| file_input_inner stmt"""
+    #print "file_input_inner", p
 
 
 def p_decorator(p):
@@ -54,14 +67,10 @@ def p_parameters(p):
     print "parameters", p[:]
 
 
-"""
-(fpdef ['=' test] ',')* ('*' NAME [',' '**' NAME] | '**' NAME)
-| fpdef ['=' test] (',' fpdef ['=' test])* [',']
-"""
 def p_varargslist(p):
     """varargslist : varargslist_inner1 STAR NAME
-                   | varargslist_inner1 STAR NAME COMMA DBLSTAR NAME
-                   | varargslist_inner1 DBLSTAR NAME
+                   | varargslist_inner1 STAR NAME COMMA DBL_STAR NAME
+                   | varargslist_inner1 DBL_STAR NAME
                    | fpdef varargslist_inner2 optional_comma
                    | fpdef EQ test varargslist_inner2 optional_comma"""
     print "varargslist", p[:]
@@ -98,6 +107,187 @@ def p_fplist_inner(p):
     print "fplist_inner", p[:]
 
 
+################
+## Statements ##
+################
+
+
+def p_stmt(p):
+    """stmt : simple_stmt
+            | compound_stmt"""
+    print "stmt", p[:]
+
+
+def p_simple_stmt(p):
+    """simple_stmt : simple_stmt_inner NEWLINE
+                   | simple_stmt_inner SEMICOLON NEWLINE"""
+    print "simple_stmt", p[:]
+
+
+def p_simple_stmt_inner(p):
+    """simple_stmt_inner : small_stmt
+                         | small_stmt SEMICOLON simple_stmt_inner"""
+    print "simple_stmt_inner", p[:]
+
+
+def p_small_stmt(p):
+    """small_stmt : expr_stmt
+                  | print_stmt
+                  | del_stmt
+                  | pass_stmt
+                  | flow_stmt
+                  | import_stmt
+                  | global_stmt
+                  | exec_stmt
+                  | assert_stmt"""
+    print "small_stmt", p[:]
+
+
+def p_expr_stmt(p):
+    """expr_stmt : testlist
+                 | testlist augassign yield_expr
+                 | testlist augassign testlist
+                 | testlist expr_stmt_inner"""
+    print "expr_stmt", p[:]
+
+
+def p_expr_stmt_inner(p):
+    """expr_stmt_inner : empty
+                       | EQ yield_expr expr_stmt_inner
+                       | EQ testlist expr_stmt_inner"""
+    print "expr_stmt_inner", p[:]
+
+
+def p_augassign(p):
+    """augassign : PLUS_EQ
+                 | MINUS_EQ
+                 | STAR_EQ
+                 | SLASH_EQ
+                 | MOD_EQ
+                 | AMPERSAND_EQ
+                 | PIPE_EQ
+                 | CARET_EQ
+                 | DBL_LANG_EQ
+                 | DBL_RANG_EQ
+                 | DBL_STAR_EQ
+                 | DBL_SLASH_EQ"""
+    print "augassign", p[:]
+
+
+def p_print_stmt(p):
+    """print_stmt : PRINT
+                  | PRINT test_multiple optional_comma
+                  | DBL_RANG test
+                  | DBL_RANG test COMMA test test_multiple optional_comma"""
+    print "print_stmt", p[:]
+
+
+def p_del_stmt(p):
+    """del_stmt : DEL exprlist"""
+    print "del_stmt", p[:]
+
+
+def p_pass_stmt(p):
+    """pass_stmt : PASS"""
+    print "pass_stmt", p[:]
+
+
+def p_flow_stmt(p):
+    """flow_stmt : break_stmt
+                 | continue_stmt
+                 | return_stmt
+                 | raise_stmt
+                 | yield_stmt"""
+    print "flow_stmt", p[:]
+
+
+def p_break_stmt(p):
+    """break_stmt : BREAK"""
+    print "break_stmt", p[:]
+
+
+def p_continue_stmt(p):
+    """continue_stmt : CONTINUE"""
+    print "continue_stmt", p[:]
+
+
+def p_return_stmt(p):
+    """return_stmt : RETURN
+                   | RETURN testlist"""
+    print "return_stmt", p[:]
+
+
+def p_yield_stmt(p):
+    """yield_stmt : yield_expr"""
+    print "yield_stmt", p[:]
+
+
+def p_raise_stmt(p):
+    """raise_stmt : RAISE
+                  | RAISE test
+                  | RAISE test COMMA test
+                  | RAISE test COMMA test COMMA test"""
+    print "raise_stmt", p[:]
+
+
+def p_import_stmt(p):
+    """import_stmt : import_name
+                   | import_from"""
+    print "import_stmt", p[:]
+
+
+def p_import_name(p):
+    """import_name : IMPORT dotted_as_names"""
+    print "import_name", p[:]
+
+
+def p_import_from(p):
+    """import_from : FROM dot_multiple dotted_name IMPORT STAR
+                   | FROM dot_multiple dotted_name IMPORT LPAREN import_as_names RPAREN
+                   | FROM dot_multiple dotted_name IMPORT import_as_names
+                   | FROM DOT dot_multiple IMPORT STAR
+                   | FROM DOT dot_multiple IMPORT LPAREN import_as_names RPAREN
+                   | FROM DOT dot_multiple IMPORT import_as_names"""
+    print "import_name", p[:]
+
+
+# '.'*
+def p_dot_multiple(p):
+    """dot_multiple : empty
+                    | DOT dot_multiple"""
+    print "dot_multiple", p[:]
+
+
+def p_import_as_name(p):
+    """import_as_name : NAME
+                      | NAME AS NAME"""
+    print "import_as_name", p[:]
+
+
+def p_dotted_as_name(p):
+    """dotted_as_name : dotted_name
+                      | dotted_name AS NAME"""
+    print "dotted_as_name", p[:]
+
+
+def p_import_as_names(p):
+    """import_as_names : import_as_names_inner optional_comma"""
+    print "import_as_names", p[:]
+
+
+# import_as_name (',' import_as_name)*
+def p_import_as_names_inner(p):
+    """import_as_names_inner : import_as_name
+                             | import_as_name COMMA import_as_names_inner"""
+    print "import_as_names_inner", p[:]
+
+
+def p_dotted_as_names(p):
+    """dotted_as_names : dotted_as_name
+                       | dotted_as_name COMMA dotted_as_names"""
+    print "dotted_as_names", p[:]
+
+
 def p_dotted_name(p):
     """dotted_name : NAME
                    | dotted_name DOT NAME"""
@@ -105,6 +295,124 @@ def p_dotted_name(p):
         p[0] = Name(p[1])
     else:
         p[0] = Attribute(p[3], p[1])
+    print "dotted_name", p[:]
+
+
+def p_global_stmt(p):
+    """global_stmt : GLOBAL name_multiple"""
+    print "global_stmt", p[:]
+
+
+# NAME (',' NAME)*
+def p_name_multiple(p):
+    """name_multiple : NAME
+                     | NAME COMMA name_multiple"""
+    print "name_multiple", p[:]
+
+
+def p_exec_stmt(p):
+    """exec_stmt : EXEC expr
+                 | EXEC expr IN test
+                 | EXEC expr IN test COMMA test"""
+    print "exec_stmt", p[:]
+
+
+def p_assert_stmt(p):
+    """assert_stmt : ASSERT test
+                   | ASSERT test COMMA test"""
+    print "assert_stmt", p[:]
+
+
+def p_compound_stmt(p):
+    """compound_stmt : if_stmt
+                     | while_stmt
+                     | for_stmt
+                     | try_stmt
+                     | with_stmt
+                     | funcdef
+                     | classdef
+                     | decorated"""
+    print "compound_stmt", p[:]
+
+
+def p_if_stmt(p):
+    """if_stmt : IF test COLON suite elif_multiple
+               | IF test COLON suite elif_multiple ELSE COLON suite"""
+    print "if_stmt", p[:]
+
+
+# ('elif' test ':' suite)*
+def p_elif_multiple(p):
+    """elif_multiple : empty
+                     | ELIF test COLON suite elif_multiple"""
+    print "elif_multiple", p[:]
+
+
+def p_while_stmt(p):
+    """while_stmt : WHILE test COLON suite
+                 | WHILE test COLON suite ELSE COLON suite"""
+    print "while_stmt", p[:]
+
+
+def p_for_stmt(p):
+    """for_stmt : FOR exprlist IN testlist COLON suite
+                | FOR exprlist IN testlist COLON suite ELSE COLON suite"""
+    print "for_stmt", p[:]
+
+
+def p_try_stmt(p):
+    """try_stmt : TRY COLON suite try_inner
+                | TRY COLON suite try_inner ELSE COLON suite
+                | TRY COLON suite try_inner FINALLY COLON suite
+                | TRY COLON suite try_inner ELSE COLON suite FINALLY COLON suite
+                | TRY COLON suite FINALLY COLON suite
+                """
+    print "try_stmt", p[:]
+
+
+# (except_clause ':' suite)+
+def p_try_inner(p):
+    """try_inner : except_clause COLON suite
+                 | except_clause COLON suite try_inner"""
+    print "try_inner", p[:]
+
+
+def p_with_stmt(p):
+    """with_stmt : WITH with_items COLON suite"""
+    print "with_stmt", p[:]
+
+
+# with_item (',' with_item)*
+def p_with_items(p):
+    """with_items : with_item
+                  | with_item COMMA with_items"""
+    print "with_items", p[:]
+
+
+def p_with_item(p):
+    """with_item : test
+                 | test AS expr"""
+    print "with_item", p[:]
+
+
+def p_except_clause(p):
+    """except_clause : EXCEPT
+                     | EXCEPT test
+                     | EXCEPT test AS test
+                     | EXCEPT test COMMA test"""
+    print "except_caluse", p[:]
+
+
+# TODO: fix
+def p_suite(p):
+    """suite : simple_stmt
+             | stmt suite"""
+    print "suite", p[:]
+
+
+#######################
+## End of Statements ##
+#######################
 
 
 def p_testlist_safe(p):
@@ -130,14 +438,14 @@ def p_old_lambdef(p):
     print "old_lambdef", p[:]
 
 
-# TODO: fix this definition
 def p_test(p):
     """test : or_test NEWLINE
-            | or_test IF or_test ELSE test"""
+            | or_test IF or_test ELSE test
+            | lambdef"""
     print "test", p[:]
 
 
-# (',' test)*
+# test (',' test)*
 def p_test_multiple(p):
     """test_multiple : test
                      | test_multiple COMMA test"""
@@ -203,8 +511,8 @@ def p_and_expr(p):
 
 def p_shift_expr(p):
     """shift_expr : arith_expr
-                  | arith_expr LSH arith_expr
-                  | arith_expr RSH arith_expr"""
+                  | arith_expr DBL_LANG arith_expr
+                  | arith_expr DBL_RANG arith_expr"""
     print "shift_expr", p[:]
 
 
@@ -220,7 +528,7 @@ def p_term(p):
             | factor STAR factor
             | factor SLASH factor
             | factor MOD factor
-            | factor DBLSLASH factor"""
+            | factor DBL_SLASH factor"""
     print "term", p[:]
 
 
@@ -235,7 +543,7 @@ def p_factor(p):
 # TODO: fix this definition
 def p_power(p):
     """power : atom
-             | atom DBLSTAR factor"""
+             | atom DBL_STAR factor"""
     print "power", p[:]
 
 
@@ -358,8 +666,8 @@ def p_classdef(p):
 def p_arglist(p):
     """arglist : arglist_inner argument optional_comma
                | arglist_inner STAR test arglist_inner
-               | arglist_inner STAR test arglist_inner COMMA DBLSTAR test
-               | arglist_inner DBLSTAR test"""
+               | arglist_inner STAR test arglist_inner COMMA DBL_STAR test
+               | arglist_inner DBL_STAR test"""
     print "arglist", p[:]
 
 
@@ -464,4 +772,6 @@ parser = yacc.yacc()
 
 
 if __name__ == '__main__':
-    print parser.parse(sys.stdin.read())
+    logging.basicConfig(filename='parser.log', level=logging.INFO)
+    log = logging.getLogger()
+    parser.parse(sys.stdin.read(), debug=log)

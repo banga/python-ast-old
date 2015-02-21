@@ -69,19 +69,31 @@ tokens = [
     'PIPE',
     'CARET',
     'AMPERSAND',
-    'LSH',
-    'RSH',
+    'DBL_LANG',
+    'DBL_RANG',
     'PLUS',
     'MINUS',
     'STAR',
     'SLASH',
-    'DBLSTAR',
-    'DBLSLASH',
+    'DBL_STAR',
+    'DBL_SLASH',
     'MOD',
     'TILDE',
     'COLON',
     'BACKTICK',
     'EQ',
+    'PLUS_EQ',
+    'MINUS_EQ',
+    'STAR_EQ',
+    'SLASH_EQ',
+    'MOD_EQ',
+    'AMPERSAND_EQ',
+    'PIPE_EQ',
+    'CARET_EQ',
+    'DBL_LANG_EQ',
+    'DBL_RANG_EQ',
+    'DBL_STAR_EQ',
+    'DBL_SLASH_EQ',
 ] + reserved.values()
 
 
@@ -108,19 +120,31 @@ t_SEMICOLON = r';'
 t_PIPE = r'\|'
 t_CARET = r'\^'
 t_AMPERSAND = r'&'
-t_LSH = r'<<'
-t_RSH = r'>>'
+t_DBL_LANG = r'<<'
+t_DBL_RANG = r'>>'
 t_PLUS = r'\+'
 t_MINUS = r'-'
 t_STAR = r'\*'
 t_SLASH = r'/'
-t_DBLSTAR = r'\*\*'
-t_DBLSLASH = r'//'
+t_DBL_STAR = r'\*\*'
+t_DBL_SLASH = r'//'
 t_MOD = r'%'
 t_TILDE = r'~'
 t_COLON = r':'
 t_BACKTICK = r'`'
 t_EQ = r'='
+t_PLUS_EQ = r'\+='
+t_MINUS_EQ = r'-='
+t_STAR_EQ = r'\*='
+t_SLASH_EQ = r'/='
+t_MOD_EQ = r'%='
+t_AMPERSAND_EQ = r'&='
+t_PIPE_EQ = r'\|='
+t_CARET_EQ = r'^='
+t_DBL_LANG_EQ = r'<<='
+t_DBL_RANG_EQ = r'>>='
+t_DBL_STAR_EQ = r'\*\*='
+t_DBL_SLASH_EQ = r'//='
 
 
 def t_error(t):
