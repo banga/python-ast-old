@@ -439,7 +439,7 @@ def p_old_lambdef(p):
 
 
 def p_test(p):
-    """test : or_test NEWLINE
+    """test : or_test
             | or_test IF or_test ELSE test
             | lambdef"""
     print "test", p[:]
