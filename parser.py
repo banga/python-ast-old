@@ -3,8 +3,9 @@ import sys
 
 import ply.yacc as yacc
 
-from ast import ArgumentList, Attribute, Decorator, Name
+import lexer
 from lexer import tokens
+from ast import ArgumentList, Attribute, Decorator, Name
 
 
 #def p_error(p):
@@ -18,16 +19,27 @@ def p_single_input(p):
     print "single_input", p[:]
 
 
-#def p_file_input(p):
-    #"""file_input : file_input_inner ENDMARKER"""
-    #print "file_input", p[:]
+def p_file_input(p):
+    """file_input : file_input_inner ENDMARKER"""
+    print "file_input", p[:]
 
 
-#def p_file_input_inner(p):
-    #"""file_input_inner : empty
-                        #| file_input_inner NEWLINE
-                        #| file_input_inner stmt"""
-    #print "file_input_inner", p
+def p_file_input_inner(p):
+    """file_input_inner : empty
+                        | file_input_inner NEWLINE
+                        | file_input_inner stmt"""
+    print "file_input_inner", p[:]
+
+
+def p_eval_input(p):
+    """eval_input : testlist newline_multiple ENDMARKER"""
+    print "eval_input", p[:]
+
+
+def p_newline_multiple(p):
+    """newline_multiple : empty
+                        | newline_multiple NEWLINE"""
+    print "newline_multiple", p[:]
 
 
 def p_decorator(p):
@@ -403,11 +415,17 @@ def p_except_clause(p):
     print "except_caluse", p[:]
 
 
-# TODO: fix
 def p_suite(p):
     """suite : simple_stmt
-             | stmt suite"""
+             | NEWLINE INDENT stmt_multiple DEDENT"""
     print "suite", p[:]
+
+
+# stmt+
+def p_stmt_multiple(p):
+    """stmt_multiple : stmt
+                     | stmt_multiple stmt"""
+    print "stmt", p[:]
 
 
 #######################
@@ -768,10 +786,11 @@ def p_empty(p):
     """empty :"""
     pass
 
-parser = yacc.yacc()
+
+parser = yacc.yacc(start='file_input')
 
 
 if __name__ == '__main__':
     logging.basicConfig(filename='parser.log', level=logging.INFO)
     log = logging.getLogger()
-    parser.parse(sys.stdin.read(), debug=log)
+    parser.parse(sys.stdin.read(), lexer=lexer.get_lexer(), debug=log)

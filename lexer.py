@@ -3,6 +3,9 @@ __doc__ = """
 Lexer for Python AST.
 
 """
+from collections import namedtuple
+
+import ply.lex
 from ply.lex import TOKEN
 
 reserved = {
@@ -41,6 +44,10 @@ reserved = {
 
 
 tokens = [
+    'NEWLINE',
+    'INDENT',
+    'DEDENT',
+    'ENDMARKER',
     'NAME',
     'STRINGLITERAL',
     'FLOATNUMBER',
@@ -48,7 +55,6 @@ tokens = [
     'HEXINTEGER',
     'OCTINTEGER',
     'DECIMALINTEGER',
-    'NEWLINE',
     'AT',
     'DOT',
     'LPAREN',
@@ -95,10 +101,6 @@ tokens = [
     'DBL_STAR_EQ',
     'DBL_SLASH_EQ',
 ] + reserved.values()
-
-
-# Ignored characters
-t_ignore = " \t"
 
 t_AT = r'@'
 t_DOT = r'\.'
@@ -247,31 +249,120 @@ def t_DECIMALINTEGER(t):
     return t
 
 
+################
+## WHITESPACE ##
+################
+
+
 def t_NEWLINE(t):
-    r'\n'
+    r'\n[ \t]*'
+
     t.lexer.lineno += 1
+
+    # Count whitespace according to unix rules
+    count = 0
+    for char in t.value[1:]:
+        if char == '\t':
+            count += 8 - (count % 8)
+        else:
+            count += 1
+
+    t.value = count
     return t
 
 
-# Build the lexer
-import ply.lex as lex
-lex.lex()
+# NOTE: needs to be checked after newline and leading whitespace
+def t_IGNORED_WHITESPACE(t):
+    r'\s'
+    return None
+
+
+class _IndentParser(object):
+    """A wrapper for the lexer to inject indentation tokens.
+
+    These cannot be generated with the regular parser because we may need
+    to generate multiple DEDENT tokens when parsing a newline.
+
+    See also https://docs.python.org/2/reference/lexical_analysis.html#indentation
+    and http://stackoverflow.com/questions/28259366/ply-return-multiple-tokens
+
+    """
+    IndentToken = namedtuple('Token', 'type value lineno lexpos')
+
+    def __init__(self, lexer):
+        self.lexer = lexer
+        self._generator = None
+
+    def input(self, text):
+        return self.lexer.input(text)
+
+    def token(self):
+        if self._generator is None:
+            self._generator = self._token_generator()
+        try:
+            return next(self._generator)
+        except StopIteration:
+            return None
+
+    def _make_token(self, type):
+        return self.IndentToken(
+            type, None, self.lexer.lineno, self.lexer.lexpos)
+
+    def _token_generator(self):
+        """A generator that yields tokens until end of input"""
+        stack = [0]
+
+        while True:
+            token = self.lexer.token()
+
+            if token is None:
+                # EOF
+                while stack[-1]:
+                    stack.pop()
+                    yield _make_token('DEDENT')
+                yield self._make_token('ENDMARKER')
+                return
+
+            if token.type == "NEWLINE":
+                yield token
+
+                top = stack[-1]
+
+                if token.value > top:
+                    stack.append(token.value)
+                    yield self._make_token('INDENT')
+
+                elif token.value < top:
+                    assert token.value in stack, "Inconsistent dedent"
+                    while token.value != stack[-1]:
+                        stack.pop()
+                        yield self._make_token('DEDENT')
+            else:
+                yield token
+
+
+def get_lexer():
+    return _IndentParser(ply.lex.lex())
 
 
 def tokenize(text):
-    lex.input(text)
+    lexer = get_lexer()
+    lexer.input(text)
+
     while True:
-        token = lex.token()
-        if not token:
-            break
+        token = lexer.token()
+        if token is None:
+            return
         yield token
 
 
 if __name__ == '__main__':
     def print_all(text):
-        lex.input(text)
+        lexer = get_lexer()
+        lexer.input(text)
+
         while 1:
-            tok = lex.token()
+            tok = lexer.token()
             if not tok:
                 break
             print tok

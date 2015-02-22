@@ -21,7 +21,8 @@ class LexerTest(unittest.TestCase):
 class TypeTest(LexerTest):
     def assertOfType(self, text, expected_type=None):
         expected_type = expected_type or self.expected_type
-        self.assertEqualTokens([ExpectedToken(expected_type, text)], text)
+        self.assertEqualTokens(
+            [ExpectedToken(expected_type, text)], text)
 
 
 class TestOctInteger(TypeTest):
@@ -133,4 +134,51 @@ class TestNewline(TypeTest):
     expected_type = 'NEWLINE'
 
     def test(self):
-        self.assertOfType('\n')
+        self.assertEqualTokens(
+            [ExpectedToken('NEWLINE', value=0)], '\n')
+
+    def test_tabs(self):
+        self.assertEqualTokens([
+            ExpectedToken('NEWLINE', 1),
+            ExpectedToken('INDENT', None),
+            ExpectedToken('DEDENT', None)
+        ], '\n ')
+
+        self.assertEqualTokens([
+            ExpectedToken('NEWLINE', 8),
+            ExpectedToken('INDENT', None),
+            ExpectedToken('DEDENT', None)
+        ], '\n\t')
+
+        self.assertEqualTokens([
+            ExpectedToken('NEWLINE', 8),
+            ExpectedToken('INDENT', None),
+            ExpectedToken('DEDENT', None)
+        ], '\n       \t')
+
+        self.assertEqualTokens([
+            ExpectedToken('NEWLINE', 16),
+            ExpectedToken('INDENT', None),
+            ExpectedToken('DEDENT', None)
+        ], '\n        \t')
+
+    def test_indentation(self):
+        self.assertEqualTokens([
+            ExpectedToken('NEWLINE', 0),
+        ], '\n')
+
+        self.assertEqualTokens([
+            ExpectedToken('NEWLINE', 1),
+            ExpectedToken('INDENT', None),
+            ExpectedToken('DEDENT', None)
+        ], '\n ')
+
+        self.assertEqualTokens([
+            ExpectedToken('NEWLINE', 8),
+            ExpectedToken('INDENT', None),
+            ExpectedToken('NEWLINE', 16),
+            ExpectedToken('INDENT', None),
+            ExpectedToken('NEWLINE', 8),
+            ExpectedToken('DEDENT', None),
+            ExpectedToken('DEDENT', None)
+        ], '\n\t\n\t\t\n\t')
